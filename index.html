@@ -41,11 +41,8 @@
             Store, PlayCircle, Award, Gamepad2, Youtube, HelpCircle, Lightbulb, 
             CheckCircle, BarChart2, Heart, MousePointerClick, ClipboardList, 
             Target, BookOpen, School, Clock, Trash2, ShieldCheck, FileText, Ban, 
-            Smile, Sparkles, Bot, Loader2 
+            Smile 
         } from 'lucide-react';
-
-        // --- MASUKKAN API KEY GEMINI DI SINI ---
-        const API_KEY = ""; // Biarkan kosong jika belum punya, fitur AI tidak akan jalan tanpa ini.
 
         function MarketEconomicsModule() {
             const [currentSlide, setCurrentSlide] = useState(0);
@@ -55,13 +52,8 @@
             const [quizFinished, setQuizFinished] = useState(false);
             const [currentQuestion, setCurrentQuestion] = useState(0);
 
-            // --- AI STATE ---
-            const [aiPrompt, setAiPrompt] = useState('');
-            const [aiResponse, setAiResponse] = useState('');
-            const [isAiLoading, setIsAiLoading] = useState(false);
-
-            // Total slides (0-9 = 10 slides)
-            const TOTAL_SLIDES = 10;
+            // Total slides (0-8 = 9 slides) - AI slide removed
+            const TOTAL_SLIDES = 9;
 
             // --- DATA KUIS ---
             const questions = [
@@ -112,53 +104,6 @@
 
             const prevSlide = () => {
                 if (currentSlide > 0) setCurrentSlide(curr => curr - 1);
-            };
-
-            // --- AI FUNCTION ---
-            const handleAiAnalysis = async (customPrompt = null) => {
-                const promptToUse = customPrompt || aiPrompt;
-                if (!promptToUse.trim()) return;
-
-                if (!API_KEY) {
-                    setAiResponse("⚠️ API Key belum dimasukkan di dalam kode. Mohon hubungi Guru untuk mengaktifkan fitur ini.");
-                    return;
-                }
-
-                setIsAiLoading(true);
-                setAiResponse('');
-                
-                const systemInstruction = `Kamu adalah guru IPS Ekonomi yang seru untuk siswa SMP Kelas 8. 
-                Tugasmu adalah menganalisis skenario pasar yang diberikan siswa.
-                Analisis harus mencakup:
-                1. Apa yang terjadi pada Supply atau Demand? (Naik/Turun)
-                2. Apa dampaknya terhadap Harga?
-                3. Gunakan bahasa santai & emoji. Maksimal 3 paragraf pendek.`;
-
-                try {
-                    const response = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`,
-                        {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: `Skenario Pasar: ${promptToUse}` }] }],
-                                systemInstruction: { parts: [{ text: systemInstruction }] }
-                            })
-                        }
-                    );
-
-                    const data = await response.json();
-                    if (data.candidates && data.candidates[0].content) {
-                        setAiResponse(data.candidates[0].content.parts[0].text);
-                    } else {
-                        setAiResponse("Maaf, Asisten AI sedang sibuk. Coba lagi ya!");
-                    }
-                } catch (error) {
-                    console.error("Error calling Gemini API:", error);
-                    setAiResponse("Terjadi kesalahan koneksi. Periksa internetmu ya!");
-                } finally {
-                    setIsAiLoading(false);
-                }
             };
 
             // --- PERHITUNGAN SIMULASI ---
@@ -433,90 +378,8 @@
                         </div>
                         )}
 
-                        {/* SLIDE 5: AI TUTOR (NEW FEATURE) */}
+                        {/* SLIDE 5: SIMULASI INTERAKTIF */}
                         {currentSlide === 5 && (
-                        <div className="w-full animate-fadeIn max-w-4xl h-full flex flex-col">
-                            <div className="text-center mb-6">
-                            <div className="inline-block p-3 bg-purple-100 rounded-full mb-2">
-                                <Sparkles size={32} className="text-purple-600 animate-pulse" />
-                            </div>
-                            <h2 className="text-3xl font-bold text-slate-800">
-                                {lang === 'id' ? "Asisten Pasar AI" : "AI Market Analyst"}
-                            </h2>
-                            <p className="text-slate-500">
-                                {lang === 'id' ? "Ketik skenario pasar, AI akan menganalisis dampaknya!" : "Type a market scenario, AI will analyze the impact!"}
-                            </p>
-                            </div>
-
-                            <div className="flex-1 bg-white rounded-3xl shadow-xl border border-purple-100 overflow-hidden flex flex-col md:flex-row">
-                            {/* Left: Input */}
-                            <div className="p-6 md:w-1/2 bg-slate-50 border-r border-slate-200 flex flex-col">
-                                <div className="mb-4">
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
-                                    {lang === 'id' ? "Contoh Skenario:" : "Example Scenarios:"}
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    <button onClick={() => setAiPrompt("Panen cabai gagal total karena banjir")} className="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition text-left">
-                                    🌶️ Panen cabai gagal
-                                    </button>
-                                    <button onClick={() => setAiPrompt("Tiket konser band terkenal dijual terbatas")} className="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition text-left">
-                                    🎫 Tiket konser langka
-                                    </button>
-                                    <button onClick={() => setAiPrompt("Teknologi baru membuat produksi HP jadi murah")} className="text-xs bg-white border border-slate-200 px-3 py-2 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition text-left">
-                                    📱 Teknologi baru murah
-                                    </button>
-                                </div>
-                                </div>
-
-                                <textarea
-                                value={aiPrompt}
-                                onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder={lang === 'id' ? "Ketik skenario di sini... (Misal: Tiba-tiba semua orang ingin beli sepeda lipat)" : "Type scenario here..."}
-                                className="w-full flex-1 p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none mb-4"
-                                />
-                                
-                                <button 
-                                onClick={() => handleAiAnalysis()}
-                                disabled={isAiLoading || !aiPrompt.trim()}
-                                className={`w-full py-3 rounded-xl font-bold text-white flex justify-center items-center gap-2 transition-all ${isAiLoading || !aiPrompt.trim() ? 'bg-slate-300 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 shadow-lg hover:shadow-xl'}`}
-                                >
-                                {isAiLoading ? <Loader2 className="animate-spin"/> : <Sparkles size={18}/>}
-                                {lang === 'id' ? "Analisis dengan AI" : "Analyze with AI"}
-                                </button>
-                            </div>
-
-                            {/* Right: Output */}
-                            <div className="p-6 md:w-1/2 bg-purple-50/50 flex flex-col">
-                                <h3 className="text-sm font-bold text-purple-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <Bot size={18}/> {lang === 'id' ? "Analisis Guru AI" : "AI Teacher Analysis"}
-                                </h3>
-                                
-                                <div className="flex-1 bg-white p-6 rounded-2xl shadow-sm border border-purple-100 overflow-y-auto">
-                                {isAiLoading ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
-                                    <Loader2 size={40} className="animate-spin text-purple-400"/>
-                                    <p className="text-sm animate-pulse">Sedang menganalisis pasar...</p>
-                                    </div>
-                                ) : aiResponse ? (
-                                    <div className="prose prose-sm prose-purple">
-                                    <div className="whitespace-pre-wrap text-slate-700 leading-relaxed font-medium">
-                                        {aiResponse}
-                                    </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-slate-400 text-center">
-                                    <Bot size={48} className="mb-2 opacity-20"/>
-                                    <p className="text-sm">Hasil analisis akan muncul di sini.</p>
-                                    </div>
-                                )}
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                        )}
-
-                        {/* SLIDE 6: SIMULASI INTERAKTIF */}
-                        {currentSlide === 6 && (
                         <div className="w-full max-w-4xl animate-fadeIn">
                             <div className="text-center mb-8">
                             <span className="bg-yellow-100 text-yellow-800 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 inline-block shadow-sm">Interactive Simulation</span>
@@ -564,8 +427,8 @@
                         </div>
                         )}
 
-                        {/* SLIDE 7: GRAFIK INTERAKTIF */}
-                        {currentSlide === 7 && (
+                        {/* SLIDE 6: GRAFIK INTERAKTIF */}
+                        {currentSlide === 6 && (
                         <div className="w-full animate-fadeIn flex flex-col items-center">
                             <h2 className="text-3xl font-bold text-slate-800 mb-8">{lang === 'id' ? "Grafik Permintaan & Penawaran" : "Supply & Demand Graph"}</h2>
                             
@@ -610,8 +473,8 @@
                         </div>
                         )}
 
-                        {/* SLIDE 8: KUIS */}
-                        {currentSlide === 8 && (
+                        {/* SLIDE 7: KUIS */}
+                        {currentSlide === 7 && (
                         <div className="w-full max-w-2xl animate-fadeIn">
                             <div className="text-center mb-8">
                             <h2 className="text-3xl font-bold text-slate-800 mb-2">{lang === 'id' ? "Kuis Pemahaman" : "Comprehension Quiz"}</h2>
@@ -652,8 +515,8 @@
                         </div>
                         )}
 
-                        {/* SLIDE 9: PENUTUP */}
-                        {currentSlide === 9 && (
+                        {/* SLIDE 8: PENUTUP */}
+                        {currentSlide === 8 && (
                         <div className="w-full max-w-5xl animate-fadeIn space-y-8">
                             <div className="text-center mb-8">
                             <h2 className="text-3xl font-bold text-slate-800">{lang === 'id' ? "Kesimpulan & Refleksi" : "Conclusion & Reflection"}</h2>
@@ -724,7 +587,7 @@
                             <button
                             key={idx} 
                             onClick={() => setCurrentSlide(idx)}
-                            className={`h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-blue-600 w-8' : 'bg-slate-200 w-2 hover:bg-blue-200'} ${idx === 5 ? 'bg-purple-300 w-2 hover:bg-purple-400' : ''}`} 
+                            className={`h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-blue-600 w-8' : 'bg-slate-200 w-2 hover:bg-blue-200'}`} 
                             title={`Go to Slide ${idx}`}
                             />
                         ))}
